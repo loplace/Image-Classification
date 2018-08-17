@@ -3,18 +3,16 @@ Gets to 99.25% test accuracy after 12 epochs
 '''
 
 from __future__ import print_function
+
 import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
-from tensorflow.python.client import device_lib
+from keras.datasets import mnist
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Dropout, Flatten
+from keras.models import Sequential
 import tensorflow as tf
 
-
-from tensorflow.python.client import device_lib
-print(device_lib.list_local_devices())
+from Utilities.Metrics import Metrics
 
 batch_size = 128
 num_classes = 10
@@ -26,8 +24,12 @@ print(sess)
 # input image dimensions
 img_rows, img_cols = 28, 28
 
+print('downloading mnist data')
+
 # the data, split between train and test sets
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+print('downloaded mnist data')
 
 # change depth of images: if black and white, depth ==1 , if full RGB, depth ==3
 # in this case, depth ==1
@@ -54,8 +56,10 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-model = Sequential()
 
+model = Sequential()
+metrics_epoch = Metrics()
+metrics_test = Metrics()
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample. In this case,
 # it's the same (1, 28, 28) that corresponds to  the (depth, width, height) of each digit image. The first 3
 # parameters represent? They correspond to the number of convolution filters to use, the number of rows in each
@@ -68,12 +72,12 @@ model.add(Conv2D(32, kernel_size=(3, 3),
 # Add anoother layer
 model.add(Conv2D(64, (3, 3), activation='relu'))
 
-# MaxPooling2D is a way to reduce the number of parameters in our model by sliding a 2x2 pooling filter across the previous layer and taking the max of the 4 values in the 2x2 filter.
+# MaxPooling2D is a way to reduce the number of parameters in our model by sliding a 2x2 pooling filter across the
+# previous layer and taking the max of the 4 values in the 2x2 filter.
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
 model.add(Dropout(0.25))
-
 
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
@@ -90,10 +94,21 @@ model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
           verbose=1,
-          validation_data=(x_test, y_test))
+          validation_data=(x_test, y_test),
+          callbacks=[metrics_epoch])
 
-model.save('mnist_cnn.h5')
+# model.save('mnist_cnn.h5')
 
-score = model.evaluate(x_test, y_test, verbose=0)
+score = model.evaluate(x_test, y_test, verbose=1)
+
+# TODO  The proper way to evaluate precision and recall is to use `preds = model.predict(X_test)` and then compute
+# `precision(preds, y_test)` via e.g. a sklearn utility function
+
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
+print(score)
+
+print(metrics_epoch.val_f1s)
+print(metrics_epoch.val_precisions)
+print(metrics_epoch.val_recalls)
+print(metrics_epoch.val_accuracy)
