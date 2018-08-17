@@ -1,7 +1,5 @@
 '''Trains a simple convnet on the MNIST dataset.
 Gets to 99.25% test accuracy after 12 epochs
-(there is still a lot of margin for parameter tuning).
-16 seconds per epoch on a GRID K520 GPU.
 '''
 
 from __future__ import print_function
@@ -11,10 +9,19 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from keras import backend as K
+from tensorflow.python.client import device_lib
+import tensorflow as tf
+
+
+from tensorflow.python.client import device_lib
+print(device_lib.list_local_devices())
 
 batch_size = 128
 num_classes = 10
 epochs = 1
+
+sess = K.tensorflow_backend._get_available_gpus()
+print(sess)
 
 # input image dimensions
 img_rows, img_cols = 28, 28
