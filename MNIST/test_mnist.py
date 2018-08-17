@@ -6,8 +6,6 @@ import argparse
 import imutils
 import cv2
 
-
-
 # load the image
 image = cv2.imread('/home/federico/Scaricati/mnist_png/testing/1/2.png', cv2.IMREAD_GRAYSCALE)
 orig = image.copy()
@@ -23,19 +21,19 @@ print("[INFO] loading network...")
 model = load_model('mnist_cnn.h5')
 
 # classify the input image
+# result is list of lists
 result = model.predict(image)[0]
 index = result.argmax(axis=-1)
 proba = result[index]
 
-
-print index
-print proba
+print(index)
+print(proba)
 
 # build the label
 
 label = "{}: {:.2f}%".format(index, proba * 100)
 
-print label
+print(label)
 
 # draw the label on the image
 output = imutils.resize(orig, width=400)

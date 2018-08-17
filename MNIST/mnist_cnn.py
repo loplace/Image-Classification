@@ -10,7 +10,8 @@ from keras.datasets import mnist
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
-import tensorflow as tf
+from keras.utils import to_categorical
+from sklearn.metrics import precision_recall_fscore_support
 
 from Utilities.Metrics import Metrics
 
@@ -18,8 +19,8 @@ batch_size = 128
 num_classes = 10
 epochs = 1
 
-sess = K.tensorflow_backend._get_available_gpus()
-print(sess)
+# sess = K.tensorflow_backend._get_available_gpus()
+# print(sess)
 
 # input image dimensions
 img_rows, img_cols = 28, 28
@@ -56,10 +57,9 @@ print(x_test.shape[0], 'test samples')
 y_train = keras.utils.to_categorical(y_train, num_classes)
 y_test = keras.utils.to_categorical(y_test, num_classes)
 
-
 model = Sequential()
 metrics_epoch = Metrics()
-metrics_test = Metrics()
+
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample. In this case,
 # it's the same (1, 28, 28) that corresponds to  the (depth, width, height) of each digit image. The first 3
 # parameters represent? They correspond to the number of convolution filters to use, the number of rows in each
@@ -101,14 +101,34 @@ model.fit(x_train, y_train,
 
 score = model.evaluate(x_test, y_test, verbose=1)
 
-# TODO  The proper way to evaluate precision and recall is to use `preds = model.predict(X_test)` and then compute
-# `precision(preds, y_test)` via e.g. a sklearn utility function
+# get classification results and transforms into one-hot encoding
+classes = model.predict_classes(x_test)
+classes_one_hot_encoded = to_categorical(classes)
 
+
+print("CLASSES")
+print(classes)
+print("CLASSES_ONE_HOT_ENCODED")
+print(classes_one_hot_encoded)
+print("Y_TEST")
+print(y_test)
+
+# calculate precision, recall, f score, support for each class
+precision, recall, fscore, support = precision_recall_fscore_support(classes_one_hot_encoded, y_test, average=None)
+
+# metrics given by keras
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
-print(score)
 
-print(metrics_epoch.val_f1s)
+# metrics calculated by using sklearn after validating
+print('Precision')
+print(precision)
+print('Recall')
+print(recall)
+print('Fscore')
+print(fscore)
+
+# metrics calculated with sklearn during training
 print(metrics_epoch.val_precisions)
 print(metrics_epoch.val_recalls)
 print(metrics_epoch.val_accuracy)
