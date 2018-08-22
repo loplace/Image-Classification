@@ -8,12 +8,9 @@ from keras import models, layers, optimizers
 from keras.applications import VGG16
 from keras.preprocessing.image import ImageDataGenerator, load_img
 
-config = tf.ConfigProto()
-config.gpu_options.allow_growth = True
-sess = tf.Session(config=config)
 
-train_dir = 'C:/Users/brain/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
-validation_dir = 'C:/Users/brain/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
+validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 image_size = 224
 
 # Load the VGG model
@@ -69,10 +66,8 @@ model.compile(loss='binary_crossentropy',
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    steps_per_epoch=train_generator.samples / train_generator.batch_size,
     epochs=2,
     validation_data=validation_generator,
-    validation_steps=validation_generator.samples / validation_generator.batch_size,
     verbose=1)
 
 # Save the Model
@@ -90,12 +85,14 @@ plt.plot(epochs, acc, 'b', label='Training acc')
 plt.plot(epochs, val_acc, 'r', label='Validation acc')
 plt.title('Training and validation accuracy')
 plt.legend()
+plt.savefig('tumamma')
 
-plt.figure()
+plt.show()
 
 plt.plot(epochs, loss, 'b', label='Training loss')
 plt.plot(epochs, val_loss, 'r', label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
+plt.savefig('sumamma')
 
 plt.show()

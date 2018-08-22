@@ -42,7 +42,7 @@ for train_index, test_index in kf.split(X):
                      activation='relu',
                      input_shape=input_shape))
 
-    # Add anoother layer
+    # Add another layer
     model.add(Conv2D(64, (3, 3), activation='relu'))
 
     # MaxPooling2D is a way to reduce the number of parameters in our model by sliding a 2x2 pooling filter across the
