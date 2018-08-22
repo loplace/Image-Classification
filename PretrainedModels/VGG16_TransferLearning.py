@@ -1,15 +1,15 @@
-import  keras
+import keras
 from keras import models, layers, optimizers
-from keras.applications import vgg16,vgg19
+from keras.applications import vgg16, vgg19
 import numpy as np
 
-#load vgg model with weights by imagenet
+# load vgg model with weights by imagenet
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn.utils import shuffle
 
 vgg_conv = vgg16.VGG16(weights='imagenet',
-                  include_top=False,
-                  input_shape=(224, 224, 3))
+                       include_top=False,
+                       input_shape=(224, 224, 3))
 
 train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
 validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
@@ -18,16 +18,16 @@ nTrain = 184
 nVal = 165
 
 datagen = ImageDataGenerator(
-      rescale=1./255,
-      rotation_range=20,
-      width_shift_range=0.2,
-      height_shift_range=0.2,
-      horizontal_flip=True,
-      fill_mode='nearest')
+    rescale=1. / 255,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest')
 batch_size = 20
 
 train_features = np.zeros(shape=(nTrain, 7, 7, 512))
-train_labels = np.zeros(shape=(nTrain))
+train_labels = np.zeros(shape=nTrain)
 
 train_generator = datagen.flow_from_directory(
     train_dir,
@@ -61,16 +61,16 @@ validation_generator = datagen.flow_from_directory(
 i = 0
 for inputs_batch, labels_batch in validation_generator:
     features_batch = vgg_conv.predict(inputs_batch)
-    validation_features[i * batch_size : (i + 1) * batch_size] = features_batch
-    validation_labels[i * batch_size : (i + 1) * batch_size] = labels_batch
+    validation_features[i * batch_size: (i + 1) * batch_size] = features_batch
+    validation_labels[i * batch_size: (i + 1) * batch_size] = labels_batch
     i += 1
-    print ('b')
+    print('b')
     if i * batch_size >= nVal:
         break
 
 validation_features = np.reshape(validation_features, (nVal, 7 * 7 * 512))
 
-#Generate Model
+# Generate Model
 model = models.Sequential()
 model.add(layers.Dense(512, activation='relu', input_dim=7 * 7 * 512))
 model.add(layers.Dropout(0.5))
@@ -84,6 +84,6 @@ history = model.fit(train_features,
                     train_labels,
                     epochs=20,
                     batch_size=batch_size,
-                    validation_data=(validation_features,validation_labels))
+                    validation_data=(validation_features, validation_labels))
 
-print ('done')
+print('done')

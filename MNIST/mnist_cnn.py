@@ -90,6 +90,7 @@ model.compile(loss=keras.losses.categorical_crossentropy,
               optimizer=keras.optimizers.Adadelta(),
               metrics=['accuracy'])
 
+print('fitting')
 model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
@@ -98,7 +99,7 @@ model.fit(x_train, y_train,
           callbacks=[metrics_epoch])
 
 # model.save('mnist_cnn.h5')
-
+print('evaluating')
 score = model.evaluate(x_test, y_test, verbose=1)
 
 # get classification results and transforms into one-hot encoding

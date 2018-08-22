@@ -1,12 +1,9 @@
+import keras
 import numpy as np
 from keras import models
-from sklearn.model_selection import KFold
-from sklearn.cross_validation import cross_val_score, cross_val_predict
-import keras
-from keras.wrappers.scikit_learn import KerasClassifier
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten
-from keras.models import Sequential
+from sklearn.model_selection import KFold
 
 X = np.load('/home/federico/PycharmProjects/Image Classification/SignLanguage/X.npy')
 Y = np.load('/home/federico/PycharmProjects/Image Classification/SignLanguage/Y.npy')
@@ -16,13 +13,13 @@ num_classes = 10
 epochs = 1
 
 X = X.reshape(X.shape[0], 64, 64, 1)
-input_shape = (64,64,1)
+input_shape = (64, 64, 1)
 
 kf = KFold(n_splits=5)  # define number of folds
 kf.get_n_splits(X)
 
-print ('kf:')
-print (kf)
+print('kf:')
+print(kf)
 
 cvscores = []
 
@@ -31,7 +28,7 @@ for train_index, test_index in kf.split(X):
     X_train, X_test = X[train_index], X[test_index]
     y_train, y_test = Y[train_index], Y[test_index]
 
-# define model
+    # define model
 
     model = None
     model = models.Sequential()
@@ -77,4 +74,3 @@ for train_index, test_index in kf.split(X):
     cvscores.append(score[1] * 100)
 
 print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
-
