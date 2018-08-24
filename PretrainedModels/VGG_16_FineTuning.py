@@ -53,7 +53,7 @@ model.add(vgg_conv)
 
 # Add new layers
 model.add(layers.Flatten())
-model.add(layers.Dense(1024, activation='relu'))
+model.add(layers.Dense(64, activation='relu'))
 model.add(layers.Dropout(0.50))
 model.add(layers.Dense(1, activation='sigmoid'))
 

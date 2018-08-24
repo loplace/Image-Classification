@@ -4,7 +4,9 @@ from keras.applications import vgg16, vgg19
 import numpy as np
 
 # load vgg model with weights by imagenet
+from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
+from sklearn import metrics
 from sklearn.utils import shuffle
 
 vgg_conv = vgg16.VGG16(weights='imagenet',
@@ -18,6 +20,8 @@ train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Mal
 validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
 nTrain = 2161
 nVal = 617
+batch_size = 10
+
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -26,7 +30,6 @@ datagen = ImageDataGenerator(
     height_shift_range=0.2,
     horizontal_flip=True,
     fill_mode='nearest')
-batch_size = 20
 
 train_features = np.zeros(shape=(nTrain, 7, 7, 512))
 train_labels = np.zeros(shape=nTrain)
@@ -43,7 +46,6 @@ for inputs_batch, labels_batch in train_generator:
     train_features[i * batch_size: (i + 1) * batch_size] = features_batch
     train_labels[i * batch_size: (i + 1) * batch_size] = labels_batch
     i += 1
-    print('a')
     if i * batch_size >= nTrain:
         break
 
@@ -65,7 +67,6 @@ for inputs_batch, labels_batch in validation_generator:
     validation_features[i * batch_size: (i + 1) * batch_size] = features_batch
     validation_labels[i * batch_size: (i + 1) * batch_size] = labels_batch
     i += 1
-    print('b')
     if i * batch_size >= nVal:
         break
 
@@ -75,7 +76,7 @@ validation_features = np.reshape(validation_features, (nVal, 7 * 7 * 512))
 model = models.Sequential()
 model.add(layers.Dense(512, activation='relu', input_dim=7 * 7 * 512))
 model.add(layers.Dropout(0.5))
-model.add(layers.Dense(1, activation='softmax'))
+model.add(layers.Dense(1, activation='sigmoid'))
 
 model.compile(optimizer=optimizers.RMSprop(lr=2e-4),
               loss='binary_crossentropy',
@@ -83,8 +84,41 @@ model.compile(optimizer=optimizers.RMSprop(lr=2e-4),
 
 history = model.fit(train_features,
                     train_labels,
-                    epochs=20,
+                    epochs=1,
                     batch_size=batch_size,
                     validation_data=(validation_features, validation_labels))
 
-print('done')
+fnames = validation_generator.filenames
+ground_truth = validation_generator.classes
+label2index = validation_generator.class_indices
+
+
+predictions = model.predict_classes(validation_features)
+prob = model.predict(validation_features)
+errors = np.where(predictions != ground_truth)[0]
+print("No of errors = {}/{}".format(len(errors),nVal))
+
+
+val_preds = np.argmax(predictions, axis=-1)
+print(val_preds)
+val_trues = validation_generator.classes
+classes_one_hot_encoded = to_categorical(val_trues)
+
+cm = metrics.confusion_matrix(val_trues, val_preds)
+print(cm)
+
+precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average=None)
+
+# Plot the accuracy and loss curves
+acc = history.history['acc']
+val_acc = history.history['val_acc']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+
+# metrics calculated by using sklearn after validating
+print('Precision')
+print(precisions)
+print('Recall')
+print(recall)
+print('Fscore')
+print(fscore)
