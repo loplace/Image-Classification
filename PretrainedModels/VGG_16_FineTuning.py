@@ -9,9 +9,12 @@ from keras.applications import VGG16
 from keras.preprocessing.image import ImageDataGenerator, load_img
 
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
-image_size = 224
+#train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits-360/Training'
+#validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/Test'
+
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test'
+image_size = 100
 
 # Load the VGG model
 vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
@@ -30,13 +33,20 @@ model.add(vgg_conv)
 model.add(layers.Flatten())
 model.add(layers.Dense(1024, activation='relu'))
 model.add(layers.Dropout(0.5))
-model.add(layers.Dense(1, activation='softmax'))
+model.add(layers.Dense(75, activation='softmax'))
 
 # Show a summary of the model. Check the number of trainable parameters
 model.summary()
 
-# No Data augmentation
-train_datagen = ImageDataGenerator(rescale=1. / 255)
+# Data augmentation
+train_datagen = ImageDataGenerator(
+    rescale=1. / 255,
+    rotation_range=20,
+    width_shift_range=0.2,
+    height_shift_range=0.2,
+    horizontal_flip=True,
+    fill_mode='nearest')
+
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
@@ -48,30 +58,32 @@ train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(image_size, image_size),
     batch_size=train_batchsize,
-    class_mode='binary')
+    class_mode='categorical')
 
 # Data Generator for Validation data
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
     target_size=(image_size, image_size),
     batch_size=val_batchsize,
-    class_mode='binary',
+    class_mode='categorical',
     shuffle=False)
 
 # Compile the model
-model.compile(loss='binary_crossentropy',
+model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.RMSprop(lr=1e-4),
               metrics=['acc'])
 
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=2,
+    epochs=20,
     validation_data=validation_generator,
     verbose=1)
 
+print(history)
+
 # Save the Model
-model.save('left4dead_layers.h5')
+model.save('left4dead_layers_fruit_data_augmentation.h5')
 
 # Plot the accuracy and loss curves
 acc = history.history['acc']

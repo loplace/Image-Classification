@@ -17,7 +17,7 @@ from Utilities.Metrics import Metrics
 
 batch_size = 128
 num_classes = 10
-epochs = 1
+epochs = 20
 
 # sess = K.tensorflow_backend._get_available_gpus()
 # print(sess)

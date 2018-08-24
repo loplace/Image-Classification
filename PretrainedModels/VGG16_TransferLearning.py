@@ -11,11 +11,13 @@ vgg_conv = vgg16.VGG16(weights='imagenet',
                        include_top=False,
                        input_shape=(224, 224, 3))
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
+#train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
+#validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 
-nTrain = 184
-nVal = 165
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+nTrain = 2161
+nVal = 617
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -33,8 +35,7 @@ train_generator = datagen.flow_from_directory(
     train_dir,
     target_size=(224, 224),
     batch_size=batch_size,
-    class_mode='binary',
-    shuffle=True)
+    class_mode='binary')
 
 i = 0
 for inputs_batch, labels_batch in train_generator:
@@ -49,7 +50,7 @@ for inputs_batch, labels_batch in train_generator:
 train_features = np.reshape(train_features, (nTrain, 7 * 7 * 512))
 
 validation_features = np.zeros(shape=(nVal, 7, 7, 512))
-validation_labels = np.zeros(shape=(nVal))
+validation_labels = np.zeros(shape=nVal)
 
 validation_generator = datagen.flow_from_directory(
     validation_dir,
