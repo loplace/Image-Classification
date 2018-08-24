@@ -1,4 +1,7 @@
 from __future__ import print_function
+
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 # matplotlib inline
@@ -8,16 +11,35 @@ from keras import models, layers, optimizers
 from keras.applications import VGG16
 from keras.preprocessing.image import ImageDataGenerator, load_img
 
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+from keras.utils import to_categorical
+from sklearn import metrics
 
-#train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits-360/Training'
-#validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/Test'
-
-train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training'
-validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test'
-image_size = 100
+# train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
+# validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
+image_size = 200
 
 # Load the VGG model
 vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
+
+for fname in os.listdir(train_dir):
+    if fname.startswith("."):
+        os.remove(os.path.join(train_dir, fname))
+
+for fname in os.listdir(validation_dir):
+    if fname.startswith("."):
+        os.remove(os.path.join(validation_dir, fname))
+
+# for parent, dirnames, filenames in os.walk(train_dir):
+#     for d in dirnames:
+#         for fn in filenames:
+#             if fn.startswith("."):
+#                os.remove(os.path.join(train_dir, fn))
+#
+# for fname in os.listdir(validation_dir):
+#     if fname.startswith("."):
+#         os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
 for layer in vgg_conv.layers[:-4]:
@@ -32,8 +54,8 @@ model.add(vgg_conv)
 # Add new layers
 model.add(layers.Flatten())
 model.add(layers.Dense(1024, activation='relu'))
-model.add(layers.Dropout(0.5))
-model.add(layers.Dense(75, activation='softmax'))
+model.add(layers.Dropout(0.50))
+model.add(layers.Dense(1, activation='sigmoid'))
 
 # Show a summary of the model. Check the number of trainable parameters
 model.summary()
@@ -50,7 +72,7 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 20
+train_batchsize = 10
 val_batchsize = 10
 
 # Data Generator for Training data
@@ -58,38 +80,54 @@ train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(image_size, image_size),
     batch_size=train_batchsize,
-    class_mode='categorical')
+    class_mode='binary')
 
 # Data Generator for Validation data
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
     target_size=(image_size, image_size),
     batch_size=val_batchsize,
-    class_mode='categorical',
+    class_mode='binary',
     shuffle=False)
 
 # Compile the model
-model.compile(loss='categorical_crossentropy',
+model.compile(loss='binary_crossentropy',
               optimizer=optimizers.RMSprop(lr=1e-4),
               metrics=['acc'])
 
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=20,
+    epochs=5,
     validation_data=validation_generator,
     verbose=1)
 
-print(history)
-
 # Save the Model
-model.save('left4dead_layers_fruit_data_augmentation.h5')
+model.save('left4dead_layers_male_female_data_augmentation.h5')
+
+predictions = model.predict_generator(validation_generator)
+val_preds = np.argmax(predictions, axis=-1)
+val_trues = validation_generator.classes
+classes_one_hot_encoded = to_categorical(val_trues)
+
+cm = metrics.confusion_matrix(val_trues, val_preds)
+print(cm)
+
+precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average=None)
 
 # Plot the accuracy and loss curves
 acc = history.history['acc']
 val_acc = history.history['val_acc']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
+
+# metrics calculated by using sklearn after validating
+print('Precision')
+print(precisions)
+print('Recall')
+print(recall)
+print('Fscore')
+print(fscore)
 
 epochs = range(len(acc))
 
