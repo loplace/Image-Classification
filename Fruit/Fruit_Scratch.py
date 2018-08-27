@@ -1,21 +1,12 @@
-'''Trains a simple convnet on the MNIST dataset.
-Gets to 99.25% test accuracy after 12 epochs
-'''
 
 from __future__ import print_function
 
-import keras
-from keras import backend as K
-from keras.datasets import mnist
 from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
-from keras.utils import to_categorical
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
-from sklearn.metrics import precision_recall_fscore_support
 import numpy as np
-from sklearn.preprocessing import label
 
 from Utilities.Metrics import Metrics
 
@@ -24,10 +15,10 @@ num_classes = 10
 epochs = 10
 
 # input image dimensions
-image_size = 224
+image_size = 100
 
-train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/training_set'
-validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/test_set'
+train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits/fruits-360/Training'
+validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits/fruits-360/Test'
 
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -48,27 +39,24 @@ train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(image_size, image_size),
     batch_size=train_batchsize,
-    class_mode='binary')
+    class_mode='categorical')
 
 # Data Generator for Validation data
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
     target_size=(image_size, image_size),
     batch_size=val_batchsize,
-    class_mode='binary',
+    class_mode='categorical',
     shuffle=False)
 
 model = Sequential()
 metrics_epoch = Metrics()
 
-# Next, we declare the input layer: The input shape parameter should be the shape of 1 sample. In this case,
-# it's the same (1, 28, 28) that corresponds to  the (depth, width, height) of each digit image. The first 3
-# parameters represent? They correspond to the number of convolution filters to use, the number of rows in each
-# convolution kernel, and the number of columns in each convolution kernel, respectively.
+# Next, we declare the input layer: The input shape parameter should be the shape of 1 sample.
 
 model.add(Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
-                 input_shape=[224, 224, 3]))
+                 input_shape=[image_size, image_size, 3]))
 
 # Add another layer
 model.add(Conv2D(64, (3, 3), activation='relu'))
@@ -85,9 +73,9 @@ model.add(Dense(128, activation='relu'))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
 model.add(Dropout(0.5))
-model.add(Dense(1, activation='sigmoid'))
+model.add(Dense(75, activation='softmax'))
 
-model.compile(loss='binary_crossentropy',
+model.compile(loss='categorical_crossentropy',
               optimizer='rmsprop',
               metrics=['accuracy'])
 
@@ -106,8 +94,7 @@ score = model.evaluate_generator(validation_generator)
 validation_generator.reset()
 pred = model.predict_generator(validation_generator, verbose=1)
 print(pred)
-# predicted_class_indices = np.argmax(pred, axis=1)
-predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
+predicted_class_indices = np.argmax(pred, axis=1)
 
 print(predicted_class_indices)
 labels = train_generator.class_indices
