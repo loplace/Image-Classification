@@ -1,13 +1,9 @@
-'''Trains a simple convnet on the MNIST dataset.
-Gets to 99.25% test accuracy after 12 epochs
-'''
-
 from __future__ import print_function
 
 import keras
 from keras import backend as K
 from keras.datasets import mnist
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
 from keras.utils import to_categorical
@@ -17,7 +13,7 @@ from Utilities.Metrics import Metrics
 
 batch_size = 128
 num_classes = 10
-epochs = 20
+epochs = 12
 
 # sess = K.tensorflow_backend._get_available_gpus()
 # print(sess)
@@ -77,13 +73,15 @@ model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
-model.add(Dropout(0.25))
+#model.add(Dropout(0.25))
+model.add(BatchNormalization())
 
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
-model.add(Dropout(0.5))
+#model.add(Dropout(0.5))
+model.add(BatchNormalization())
 model.add(Dense(num_classes, activation='softmax'))
 
 model.compile(loss=keras.losses.categorical_crossentropy,
@@ -94,7 +92,7 @@ print('fitting')
 model.fit(x_train, y_train,
           batch_size=batch_size,
           epochs=epochs,
-          verbose=1,
+          verbose=0,
           validation_data=(x_test, y_test),
           callbacks=[metrics_epoch])
 

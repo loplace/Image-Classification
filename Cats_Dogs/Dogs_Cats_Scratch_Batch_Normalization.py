@@ -1,7 +1,7 @@
 
 from __future__ import print_function
 
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
 from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
 from keras_preprocessing.image import ImageDataGenerator
@@ -65,13 +65,13 @@ model.add(Conv2D(64, (3, 3), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2)))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
-model.add(Dropout(0.25))
+model.add(BatchNormalization())
 
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
-model.add(Dropout(0.5))
+model.add(BatchNormalization())
 model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy',
