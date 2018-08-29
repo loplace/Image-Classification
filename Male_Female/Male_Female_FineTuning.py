@@ -106,7 +106,7 @@ history = model.fit_generator(
 model.save('left4dead_layers_male_female_data_augmentation.h5')
 
 predictions = model.predict_generator(validation_generator)
-val_preds = np.argmax(predictions, axis=-1)
+val_preds = [1 if x >= 0.5 else 0 for x in predictions]
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 

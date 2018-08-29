@@ -5,12 +5,12 @@ from keras.layers import Conv2D, MaxPooling2D
 from keras.layers import Dense, Dropout, Flatten
 from sklearn.model_selection import KFold
 
-X = np.load('/home/federico/PycharmProjects/Image Classification/SignLanguage/X.npy')
-Y = np.load('/home/federico/PycharmProjects/Image Classification/SignLanguage/Y.npy')
+X = np.load('/home/federico/PycharmProjects/Image Classification/Datasets/SignLanguage/X.npy')
+Y = np.load('/home/federico/PycharmProjects/Image Classification/Datasets/SignLanguage/Y.npy')
 
 batch_size = 16
 num_classes = 10
-epochs = 1
+epochs = 15
 
 X = X.reshape(X.shape[0], 64, 64, 1)
 input_shape = (64, 64, 1)

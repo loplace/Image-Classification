@@ -13,15 +13,14 @@ vgg_conv = vgg16.VGG16(weights='imagenet',
                        include_top=False,
                        input_shape=(224, 224, 3))
 
-#train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
-#validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
+# train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
+# validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 
 train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
 validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
 nTrain = 2161
 nVal = 617
 batch_size = 10
-
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -84,7 +83,7 @@ model.compile(optimizer=optimizers.RMSprop(lr=2e-4),
 
 history = model.fit(train_features,
                     train_labels,
-                    epochs=1,
+                    epochs=15,
                     batch_size=batch_size,
                     validation_data=(validation_features, validation_labels))
 
@@ -92,22 +91,21 @@ fnames = validation_generator.filenames
 ground_truth = validation_generator.classes
 label2index = validation_generator.class_indices
 
-
 predictions = model.predict_classes(validation_features)
 prob = model.predict(validation_features)
 errors = np.where(predictions != ground_truth)[0]
-print("No of errors = {}/{}".format(len(errors),nVal))
+print("No of errors = {}/{}".format(len(errors), nVal))
 
-
-val_preds = np.argmax(predictions, axis=-1)
-print(val_preds)
+predicted_class_indices = [1 if x >= 0.5 else 0 for x in prob]
+print(predicted_class_indices)
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 
-cm = metrics.confusion_matrix(val_trues, val_preds)
+cm = metrics.confusion_matrix(val_trues, predicted_class_indices)
 print(cm)
 
-precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average=None)
+precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, predicted_class_indices,
+                                                                              average=None)
 
 # Plot the accuracy and loss curves
 acc = history.history['acc']
