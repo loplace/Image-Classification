@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 # matplotlib inline
 
 from keras import models, layers, optimizers
+from keras.applications import inception_resnet_v2, InceptionResNetV2
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import VGG16
 from keras.utils import to_categorical
 from sklearn import metrics
 
@@ -20,7 +20,7 @@ validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification
 image_size = 200
 
 # Load the VGG model
-vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
+inceptResNet_conv = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
 # for parent, dirnames, filenames in os.walk(train_dir):
 #     for d in dirnames:
@@ -33,14 +33,14 @@ vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size,
 #         os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
-for layer in vgg_conv.layers[:-4]:
+for layer in inceptResNet_conv.layers[:-4]:
     layer.trainable = False
 
 # Create the model
 model = models.Sequential()
 
 # Add the vgg convolutional base model
-model.add(vgg_conv)
+model.add(inceptResNet_conv)
 
 # Add new layers
 model.add(layers.Flatten())

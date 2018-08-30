@@ -28,16 +28,6 @@ for fname in os.listdir(validation_dir):
     if fname.startswith("."):
         os.remove(os.path.join(validation_dir, fname))
 
-# for parent, dirnames, filenames in os.walk(train_dir):
-#     for d in dirnames:
-#         for fn in filenames:
-#             if fn.startswith("."):
-#                os.remove(os.path.join(train_dir, fn))
-#
-# for fname in os.listdir(validation_dir):
-#     if fname.startswith("."):
-#         os.remove(os.path.join(validation_dir, fname))
-
 # Freeze all the layers except last 4
 for layer in vgg_conv.layers[:-4]:
     layer.trainable = False

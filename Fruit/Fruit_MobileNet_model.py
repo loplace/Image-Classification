@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 # matplotlib inline
 
 from keras import models, layers, optimizers
+from keras.applications import MobileNet
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import VGG16
 from keras.utils import to_categorical
 from sklearn import metrics
 
@@ -17,30 +17,20 @@ validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification
 
 # train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
-image_size = 200
+image_size = 224
 
 # Load the VGG model
-vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
-
-# for parent, dirnames, filenames in os.walk(train_dir):
-#     for d in dirnames:
-#         for fn in filenames:
-#             if fn.startswith("."):
-#                os.remove(os.path.join(train_dir, fn))
-#
-# for fname in os.listdir(validation_dir):
-#     if fname.startswith("."):
-#         os.remove(os.path.join(validation_dir, fname))
+mobNet_conv = MobileNet(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
 # Freeze all the layers except last 4
-for layer in vgg_conv.layers[:-4]:
+for layer in mobNet_conv.layers[:-4]:
     layer.trainable = False
 
 # Create the model
 model = models.Sequential()
 
 # Add the vgg convolutional base model
-model.add(vgg_conv)
+model.add(mobNet_conv)
 
 # Add new layers
 model.add(layers.Flatten())

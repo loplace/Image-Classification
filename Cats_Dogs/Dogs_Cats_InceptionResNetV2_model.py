@@ -1,46 +1,42 @@
 from __future__ import print_function
 
 import os
-
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
 # matplotlib inline
-
 from keras import models, layers, optimizers
+from keras.applications import InceptionResNetV2
 from keras.preprocessing.image import ImageDataGenerator
-from keras.applications import VGG16
 from keras.utils import to_categorical
 from sklearn import metrics
 
-train_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
-validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
+validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
 
 # train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
 image_size = 200
 
 # Load the VGG model
-vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
+inceptResNet_conv = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
-# for parent, dirnames, filenames in os.walk(train_dir):
-#     for d in dirnames:
-#         for fn in filenames:
-#             if fn.startswith("."):
-#                os.remove(os.path.join(train_dir, fn))
-#
-# for fname in os.listdir(validation_dir):
-#     if fname.startswith("."):
-#         os.remove(os.path.join(validation_dir, fname))
+for fname in os.listdir(train_dir):
+    if fname.startswith("."):
+        os.remove(os.path.join(train_dir, fname))
+
+for fname in os.listdir(validation_dir):
+    if fname.startswith("."):
+        os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
-for layer in vgg_conv.layers[:-4]:
+for layer in inceptResNet_conv.layers[:-4]:
     layer.trainable = False
 
 # Create the model
 model = models.Sequential()
 
 # Add the vgg convolutional base model
-model.add(vgg_conv)
+model.add(inceptResNet_conv)
 
 # Add new layers
 model.add(layers.Flatten())
@@ -94,12 +90,11 @@ history = model.fit_generator(
     verbose=1)
 
 # Save the Model
-model.save('left4dead_layers_male_female_data_augmentation.h5')
+model.save('Dogs_Cats_Finetuning.h5')
 
 predictions = model.predict_generator(validation_generator)
-print(predictions)
+# val_preds = np.argmax(predictions, axis=-1)
 val_preds = [1 if x >= 0.5 else 0 for x in predictions]
-print(val_preds)
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 
