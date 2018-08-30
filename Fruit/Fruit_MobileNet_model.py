@@ -19,6 +19,8 @@ validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
 image_size = 224
 
+epochs = 1
+
 # Load the VGG model
 mobNet_conv = MobileNet(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
@@ -83,8 +85,6 @@ history = model.fit_generator(
     validation_data=validation_generator,
     verbose=1)
 
-# Save the Model
-model.save('left4dead_layers_male_female_data_augmentation.h5')
 
 predictions = model.predict_generator(validation_generator)
 print(predictions)
@@ -96,7 +96,7 @@ classes_one_hot_encoded = to_categorical(val_trues)
 cm = metrics.confusion_matrix(val_trues, val_preds)
 print(cm)
 
-precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average=None)
+precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average='weighted')
 
 # Plot the accuracy and loss curves
 acc = history.history['acc']
@@ -112,20 +112,28 @@ print(recall)
 print('Fscore')
 print(fscore)
 
-epochs = range(len(acc))
+f = open("Fruit_MobileNet.txt", "w+")
 
-plt.plot(epochs, acc, 'b', label='Training acc')
-plt.plot(epochs, val_acc, 'r', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-plt.savefig('tumamma')
+f.write('Number of Epochs:' + epochs + '\n')
 
-plt.show()
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
 
-plt.plot(epochs, loss, 'b', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.savefig('sumamma')
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
 
-plt.show()
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

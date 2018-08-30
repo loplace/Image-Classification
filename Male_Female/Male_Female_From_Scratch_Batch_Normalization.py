@@ -9,13 +9,14 @@ from sklearn import metrics
 
 from Utilities.Metrics import Metrics
 
+
+epochs = 1
 # input image dimensions
 image_size = 200
-
 train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
 validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 
-#Data Augmentation
+# Data Augmentation
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
     rotation_range=20,
@@ -27,7 +28,7 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 10
+train_batchsize = 128
 val_batchsize = 10
 
 # Data Generator for Training data
@@ -79,9 +80,10 @@ print('fitting')
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=2,
+    epochs=1,
     validation_data=validation_generator,
-    verbose=1)
+    verbose=1,
+    callbacks=[metrics_epoch])
 
 # model.save('mnist_cnn.h5')
 print('evaluating')
@@ -122,3 +124,29 @@ print('Recall')
 print(recall)
 print('Fscore')
 print(fscore)
+
+f = open("Male_Female_From_Scratch_Batch_Normalization.txt", "w+")
+
+f.write('Number of Epochs:' + epochs + '\n')
+
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
+
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

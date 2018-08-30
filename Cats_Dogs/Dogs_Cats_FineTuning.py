@@ -10,6 +10,8 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from sklearn import metrics
 
+from Utilities.Metrics import Metrics
+
 train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
 validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
 
@@ -19,14 +21,9 @@ image_size = 200
 
 # Load the VGG model
 vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
+metrics = Metrics()
+epochs = 1
 
-for fname in os.listdir(train_dir):
-    if fname.startswith("."):
-        os.remove(os.path.join(train_dir, fname))
-
-for fname in os.listdir(validation_dir):
-    if fname.startswith("."):
-        os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
 for layer in vgg_conv.layers[:-4]:
@@ -79,7 +76,7 @@ validation_generator = validation_datagen.flow_from_directory(
 
 # Compile the model
 model.compile(loss='binary_crossentropy',
-              optimizer=optimizers.RMSprop(lr=1e-4),
+              optimizer=optimizers.Adadelta(),
               metrics=['acc'])
 
 # Train the Model
@@ -87,13 +84,13 @@ history = model.fit_generator(
     train_generator,
     epochs=1,
     validation_data=validation_generator,
+    callbacks=[metrics],
     verbose=1)
 
 # Save the Model
 model.save('Dogs_Cats_Finetuning.h5')
 
 predictions = model.predict_generator(validation_generator)
-# val_preds = np.argmax(predictions, axis=-1)
 val_preds = [1 if x >= 0.5 else 0 for x in predictions]
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
@@ -117,20 +114,29 @@ print(recall)
 print('Fscore')
 print(fscore)
 
-epochs = range(len(acc))
 
-plt.plot(epochs, acc, 'b', label='Training acc')
-plt.plot(epochs, val_acc, 'r', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-plt.savefig('tumamma')
+f = open("Dogs_Cats_FineTuning.txt", "w+")
 
-plt.show()
+f.write('Number of Epochs:' + epochs + '\n')
 
-plt.plot(epochs, loss, 'b', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.savefig('sumamma')
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
 
-plt.show()
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

@@ -16,17 +16,11 @@ validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/c
 # train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
 image_size = 200
+epochs = 1
 
 # Load the VGG model
 inceptResNet_conv = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
-for fname in os.listdir(train_dir):
-    if fname.startswith("."):
-        os.remove(os.path.join(train_dir, fname))
-
-for fname in os.listdir(validation_dir):
-    if fname.startswith("."):
-        os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
 for layer in inceptResNet_conv.layers[:-4]:
@@ -93,7 +87,6 @@ history = model.fit_generator(
 model.save('Dogs_Cats_Finetuning.h5')
 
 predictions = model.predict_generator(validation_generator)
-# val_preds = np.argmax(predictions, axis=-1)
 val_preds = [1 if x >= 0.5 else 0 for x in predictions]
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
@@ -117,20 +110,28 @@ print(recall)
 print('Fscore')
 print(fscore)
 
-epochs = range(len(acc))
+f = open("Dogs_Cats_InceptionResNetV2.txt", "w+")
 
-plt.plot(epochs, acc, 'b', label='Training acc')
-plt.plot(epochs, val_acc, 'r', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-plt.savefig('tumamma')
+f.write('Number of Epochs:' + epochs + '\n')
 
-plt.show()
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
 
-plt.plot(epochs, loss, 'b', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.savefig('sumamma')
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
 
-plt.show()
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

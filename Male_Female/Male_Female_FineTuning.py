@@ -2,35 +2,23 @@ from __future__ import print_function
 
 import os
 
-import numpy as np
 import matplotlib.pyplot as plt
 # matplotlib inline
-
 from keras import models, layers, optimizers
-from keras.preprocessing.image import ImageDataGenerator
 from keras.applications import VGG16
+from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from sklearn import metrics
 
-train_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
-validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+epochs = 1
 
-# train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
-# validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
+train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
+validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
+
 image_size = 200
 
 # Load the VGG model
 vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
-
-# for parent, dirnames, filenames in os.walk(train_dir):
-#     for d in dirnames:
-#         for fn in filenames:
-#             if fn.startswith("."):
-#                os.remove(os.path.join(train_dir, fn))
-#
-# for fname in os.listdir(validation_dir):
-#     if fname.startswith("."):
-#         os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
 for layer in vgg_conv.layers[:-4]:
@@ -93,13 +81,8 @@ history = model.fit_generator(
     validation_data=validation_generator,
     verbose=1)
 
-# Save the Model
-model.save('left4dead_layers_male_female_data_augmentation.h5')
-
 predictions = model.predict_generator(validation_generator)
-print(predictions)
 val_preds = [1 if x >= 0.5 else 0 for x in predictions]
-print(val_preds)
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 
@@ -122,20 +105,28 @@ print(recall)
 print('Fscore')
 print(fscore)
 
-epochs = range(len(acc))
+f = open("Male_Female_FineTuning_Vgg16.txt", "w+")
 
-plt.plot(epochs, acc, 'b', label='Training acc')
-plt.plot(epochs, val_acc, 'r', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-plt.savefig('tumamma')
+f.write('Number of Epochs:' + epochs + '\n')
 
-plt.show()
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
 
-plt.plot(epochs, loss, 'b', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.savefig('sumamma')
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
 
-plt.show()
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

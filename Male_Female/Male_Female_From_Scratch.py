@@ -12,6 +12,8 @@ from Utilities.Metrics import Metrics
 # input image dimensions
 image_size = 200
 
+epochs = 1
+
 train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
 validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 
@@ -83,7 +85,6 @@ history = model.fit_generator(
     validation_data=validation_generator,
     verbose=1)
 
-# model.save('mnist_cnn.h5')
 print('evaluating')
 score = model.evaluate_generator(validation_generator)
 
@@ -122,3 +123,29 @@ print('Recall')
 print(recall)
 print('Fscore')
 print(fscore)
+
+f = open("Male_Female_Scratch.txt", "w+")
+
+f.write('Number of Epochs:' + epochs + '\n')
+
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
+
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

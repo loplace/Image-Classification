@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 from keras.layers import Conv2D, MaxPooling2D
@@ -124,3 +123,29 @@ print('Recall')
 print(recall)
 print('Fscore')
 print(fscore)
+
+f = open("Fruit_Scratch.txt", "w+")
+
+f.write('Number of Epochs:' + epochs + '\n')
+
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
+
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

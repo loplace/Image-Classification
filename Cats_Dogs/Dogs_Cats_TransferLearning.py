@@ -19,6 +19,7 @@ validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/c
 nTrain = 8005
 nVal = 2023
 batch_size = 10
+epochs = 1
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -99,7 +100,6 @@ prob = model.predict(validation_features)
 errors = np.where(predictions != ground_truth)[0]
 print("No of errors = {}/{}".format(len(errors), nVal))
 
-#val_preds = np.argmax(predictions, axis=-1)
 val_preds = [1 if x >= 0.5 else 0 for x in predictions]
 print(val_preds)
 val_trues = validation_generator.classes
@@ -123,3 +123,29 @@ print('Recall')
 print(recall)
 print('Fscore')
 print(fscore)
+
+f = open("Dogs_Cats_TransferLearning.txt", "w+")
+
+f.write('Number of Epochs:' + epochs + '\n')
+
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
+
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

@@ -22,15 +22,6 @@ image_size = 200
 # Load the VGG model
 inceptResNet_conv = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
 
-# for parent, dirnames, filenames in os.walk(train_dir):
-#     for d in dirnames:
-#         for fn in filenames:
-#             if fn.startswith("."):
-#                os.remove(os.path.join(train_dir, fn))
-#
-# for fname in os.listdir(validation_dir):
-#     if fname.startswith("."):
-#         os.remove(os.path.join(validation_dir, fname))
 
 # Freeze all the layers except last 4
 for layer in inceptResNet_conv.layers[:-4]:
@@ -124,18 +115,28 @@ print(fscore)
 
 epochs = range(len(acc))
 
-plt.plot(epochs, acc, 'b', label='Training acc')
-plt.plot(epochs, val_acc, 'r', label='Validation acc')
-plt.title('Training and validation accuracy')
-plt.legend()
-plt.savefig('tumamma')
+f = open("Male_Female_inResNetV2.txt", "w+")
 
-plt.show()
+f.write('Number of Epochs:' + epochs + '\n')
 
-plt.plot(epochs, loss, 'b', label='Training loss')
-plt.plot(epochs, val_loss, 'r', label='Validation loss')
-plt.title('Training and validation loss')
-plt.legend()
-plt.savefig('sumamma')
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
 
-plt.show()
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

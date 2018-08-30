@@ -15,7 +15,7 @@ epochs = 15
 X = X.reshape(X.shape[0], 64, 64, 1)
 input_shape = (64, 64, 1)
 
-kf = KFold(n_splits=5)  # define number of folds
+kf = KFold(n_splits=1)  # define number of folds
 kf.get_n_splits(X)
 
 print('kf:')
@@ -66,6 +66,7 @@ for train_index, test_index in kf.split(X):
     model.fit(X_train, y_train,
               batch_size=batch_size,
               epochs=epochs,
+              validation_data=(X_test, y_test),
               verbose=1)
 
     # model.save('mnist_cnn.h5')

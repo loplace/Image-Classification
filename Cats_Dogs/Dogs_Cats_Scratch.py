@@ -93,7 +93,6 @@ score = model.evaluate_generator(validation_generator)
 validation_generator.reset()
 pred = model.predict_generator(validation_generator, verbose=1)
 print(pred)
-# predicted_class_indices = np.argmax(pred, axis=1)
 predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
 
 print(predicted_class_indices)
@@ -124,3 +123,29 @@ print('Recall')
 print(recall)
 print('Fscore')
 print(fscore)
+
+f = open("Dogs_Cats_Scratch.txt", "w+")
+
+f.write('Number of Epochs:' + epochs + '\n')
+
+f.write('Weighted Precision:\n')
+str1 = str(precisions)
+f.write(str1 + '\n')
+
+f.write('Weighted Recall:\n')
+str2 = str(recall)
+f.write(str2 + '\n')
+
+f.write('F_Score:\n')
+str3 = str(fscore)
+f.write(str3 + '\n')
+
+f.write('val_Acc:\n')
+str3 = str(val_acc)
+f.write(str3 + '\n')
+
+f.write('val_loss:\n')
+str3 = str(val_loss)
+f.write(str3 + '\n')
+
+f.close()

@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import keras
+import numpy as np
 from keras import backend as K
 from keras.datasets import mnist
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
@@ -18,7 +19,7 @@ num_classes = 10
 # epochs = 12
 
 i = 0
-for i in range(0, 5):
+for i in range(0, 1):
     epochs = n_epochs[i]
     print(epochs)
     # sess = K.tensorflow_backend._get_available_gpus()
@@ -107,18 +108,14 @@ for i in range(0, 5):
     score = model.evaluate(x_test, y_test, verbose=1)
 
     # get classification results and transforms into one-hot encoding
-    classes = model.predict_classes(x_test)
-    classes_one_hot_encoded = to_categorical(classes)
-
-    print("CLASSES")
-    print(classes)
-    print("CLASSES_ONE_HOT_ENCODED")
-    print(classes_one_hot_encoded)
-    print("Y_TEST")
-    print(y_test)
+    val_predict = model.predict_classes(x_test)
+    classes_one_hot_encoded = to_categorical(val_predict)
 
     # calculate precision, recall, f score, support for each class
-    precision, recall, fscore, support = precision_recall_fscore_support(classes_one_hot_encoded, y_test, average=None)
+    precision, recall, fscore, support = precision_recall_fscore_support(y_test, classes_one_hot_encoded,
+                                                                         average='weighted')
+    s_precision, s_recall, s_fscore, s_support = precision_recall_fscore_support(y_test, classes_one_hot_encoded,
+                                                                                 average=None)
 
     # metrics given by keras
     print('Test loss:', score[0])
@@ -132,7 +129,34 @@ for i in range(0, 5):
     print('Fscore')
     print(fscore)
 
-    # metrics calculated with sklearn during training
-    print(metrics_epoch.val_precisions)
-    print(metrics_epoch.val_recalls)
-    print(metrics_epoch.val_accuracy)
+    # metrics calculated by using sklearn after validating
+    print('Precision')
+    print(s_precision)
+    print('Recall')
+    print(s_recall)
+    print('Fscore')
+    print(s_fscore)
+
+    f = open("mnist_cnn.txt", "w+")
+
+    f.write('Weighted Precision:\n')
+    str1 = str(precision)
+    f.write(str1 + '\n')
+
+    f.write('Weighted Recall:\n')
+    str2 = str(recall)
+    f.write(str2 + '\n')
+
+    f.write('F_Score:\n')
+    str3 = str(fscore)
+    f.write(str3 + '\n')
+
+    f.write('val_Acc:\n')
+    str3 = str(score[1])
+    f.write(str3 + '\n')
+
+    f.write('val_loss:\n')
+    str3 = str(score[0])
+    f.write(str3 + '\n')
+
+    f.close()
