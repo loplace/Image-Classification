@@ -7,17 +7,17 @@ from keras.models import Sequential
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
 
-from Utilities.Metrics import Metrics
+from Utilities.Metrics import Metrics, MetricsWithGenerator
 
 # input image dimensions
 image_size = 200
 
-epochs = 1
+epochs = 20
 
 train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
 validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
 
-#Data Augmentation
+# Data Augmentation
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
     rotation_range=20,
@@ -29,8 +29,8 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 10
-val_batchsize = 10
+train_batchsize = 30
+val_batchsize = 30
 
 # Data Generator for Training data
 train_generator = train_datagen.flow_from_directory(
@@ -47,8 +47,8 @@ validation_generator = validation_datagen.flow_from_directory(
     class_mode='binary',
     shuffle=False)
 
+customMetrics = MetricsWithGenerator(validation_generator)
 model = Sequential()
-metrics_epoch = Metrics()
 
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample.
 
@@ -74,16 +74,17 @@ model.add(Dropout(0.5))
 model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy',
-              optimizer='rmsprop',
+              optimizer='Adadelta',
               metrics=['accuracy'])
 
 print('fitting')
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=2,
+    epochs=epochs,
     validation_data=validation_generator,
-    verbose=1)
+    verbose=1,
+    callbacks=[customMetrics])
 
 print('evaluating')
 score = model.evaluate_generator(validation_generator)
@@ -124,28 +125,52 @@ print(recall)
 print('Fscore')
 print(fscore)
 
+# f = open("Male_Female_Scratch.txt", "w+")
+#
+# f.write('Number of Epochs:' + epochs + '\n')
+#
+# f.write('Weighted Precisions:\n')
+# str1 = str(precisions)
+# f.write(str1 + '\n')
+#
+# f.write('Weighted Recall:\n')
+# str2 = str(recall)
+# f.write(str2 + '\n')
+#
+# f.write('F_Score:\n')
+# str3 = str(fscore)
+# f.write(str3 + '\n')
+#
+# f.write('val_Acc:\n')
+# str3 = str(val_acc)
+# f.write(str3 + '\n')
+#
+# f.write('val_loss:\n')
+# str3 = str(val_loss)
+# f.write(str3 + '\n')
+#
+# f.close()
+
+
 f = open("Male_Female_Scratch.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
-f.write('Weighted Precision:\n')
-str1 = str(precisions)
+f.write('Weighted Precisions:\n')
+str1 = str(customMetrics.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(customMetrics.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(customMetrics.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(customMetrics.val_accuracy)
 f.write(str3 + '\n')
 
-f.write('val_loss:\n')
-str3 = str(val_loss)
-f.write(str3 + '\n')
 
 f.close()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from keras import backend as K
 from keras.callbacks import Callback
+from sklearn import metrics
 from sklearn.metrics import confusion_matrix, f1_score, precision_score, recall_score, accuracy_score
 import tensorflow as tf
 import functools
@@ -39,5 +40,33 @@ class Metrics(Callback):
         self.val_recalls.append(_val_recall)
         self.val_precisions.append(_val_precision)
         self.val_accuracy.append(_val_accuracy)
-        #print(" — val_f1: % f — val_precision: % f — val_recall % f" % (_val_f1, _val_precision, _val_recall))
+        # print(" — val_f1: % f — val_precision: % f — val_recall % f" % (_val_f1, _val_precision, _val_recall))
+        return
+
+
+class MetricsWithGenerator(Callback):
+
+    def __init__(self, validation_generator):
+        self.validation_generator = validation_generator
+        self.val_true = validation_generator.classes
+
+    def on_train_begin(self, logs={}):
+        self.val_f1s = []
+        self.val_recalls = []
+        self.val_precisions = []
+        self.val_accuracy = []
+
+    def on_epoch_end(self, epoch, logs={}):
+        pred = self.model.predict_generator(self.validation_generator, verbose=1)
+        predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
+        precisions, recall, fscore, support = metrics.precision_recall_fscore_support(self.val_true,
+                                                                                      predicted_class_indices,
+                                                                                      average='weighted')
+        accuracy = accuracy_score(self.val_true, predicted_class_indices)
+
+        self.val_f1s.append(fscore)
+        self.val_recalls.append(recall)
+        self.val_precisions.append(precisions)
+        self.val_accuracy.append(accuracy)
+
         return

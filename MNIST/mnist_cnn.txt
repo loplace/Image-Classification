@@ -1,0 +1,8 @@
+Epoche: 1
+
+Weighted Precision:
+0.9867498837643589
+Weighted Recall:
+0.9867
+F_Score:
+0.9866910016880646
