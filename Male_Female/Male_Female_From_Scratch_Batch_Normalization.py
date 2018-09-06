@@ -6,15 +6,21 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.models import Sequential
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
+from Utilities.Metrics import Metrics, MetricsWithGenerator
+import tensorflow as tf
 
-from Utilities.Metrics import Metrics
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+sess = tf.Session(config = config)
 
-
-epochs = 1
+epochs = 20
 # input image dimensions
-image_size = 200
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
+image_size = 128
+# train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/train'
+# validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/Male_Female/validation'
+
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
 
 # Data Augmentation
 train_datagen = ImageDataGenerator(
@@ -28,8 +34,8 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 128
-val_batchsize = 10
+train_batchsize = 100
+val_batchsize = 100
 
 # Data Generator for Training data
 train_generator = train_datagen.flow_from_directory(
@@ -47,13 +53,13 @@ validation_generator = validation_datagen.flow_from_directory(
     shuffle=False)
 
 model = Sequential()
-metrics_epoch = Metrics()
+metrics_epoch = MetricsWithGenerator(validation_generator)
 
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample.
 
 model.add(Conv2D(32, kernel_size=(3, 3),
                  activation='relu',
-                 input_shape=[200, 200, 3]))
+                 input_shape=[128, 128, 3]))
 
 # Add another layer
 model.add(Conv2D(64, (3, 3), activation='relu'))
@@ -73,14 +79,14 @@ model.add(BatchNormalization())
 model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy',
-              optimizer='rmsprop',
+              optimizer='Adadelta',
               metrics=['accuracy'])
 
 print('fitting')
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
     verbose=1,
     callbacks=[metrics_epoch])
@@ -98,13 +104,13 @@ predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
 
 print(predicted_class_indices)
 labels = train_generator.class_indices
-print(labels)
+#print(labels)
 labels = dict((v, k) for k, v in labels.items())
-print(labels)
+#print(labels)
 predictions = [labels[k] for k in predicted_class_indices]
 print(predictions)
 val_trues = validation_generator.classes
-print(val_trues)
+#print(val_trues)
 
 cm = metrics.confusion_matrix(val_trues, predicted_class_indices)
 print(cm)
@@ -127,26 +133,26 @@ print(fscore)
 
 f = open("Male_Female_From_Scratch_Batch_Normalization.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
 f.close()

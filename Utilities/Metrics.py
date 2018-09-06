@@ -32,9 +32,9 @@ class Metrics(Callback):
     def on_epoch_end(self, epoch, logs={}):
         val_predict = (np.asarray(self.model.predict(self.validation_data[0]))).round()
         val_targ = self.validation_data[1]
-        _val_f1 = f1_score(val_targ, val_predict, average=None)
-        _val_recall = recall_score(val_targ, val_predict, average=None)
-        _val_precision = precision_score(val_targ, val_predict, average=None)
+        _val_f1 = f1_score(val_targ, val_predict, average='weighted')
+        _val_recall = recall_score(val_targ, val_predict, average='weighted')
+        _val_precision = precision_score(val_targ, val_predict, average='weighted')
         _val_accuracy = accuracy_score(val_targ, val_predict)
         self.val_f1s.append(_val_f1)
         self.val_recalls.append(_val_recall)
@@ -55,18 +55,25 @@ class MetricsWithGenerator(Callback):
         self.val_recalls = []
         self.val_precisions = []
         self.val_accuracy = []
+        self.val_loss = []
 
     def on_epoch_end(self, epoch, logs={}):
+        score = self.model.evaluate_generator(self.validation_generator)
+        self.validation_generator.reset()
         pred = self.model.predict_generator(self.validation_generator, verbose=1)
-        predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
+       # predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
+        predicted_class_indices = np.argmax(pred, axis=-1)
+
         precisions, recall, fscore, support = metrics.precision_recall_fscore_support(self.val_true,
                                                                                       predicted_class_indices,
                                                                                       average='weighted')
-        accuracy = accuracy_score(self.val_true, predicted_class_indices)
+        loss = score[0]
+        accuracy = score[1]
 
         self.val_f1s.append(fscore)
         self.val_recalls.append(recall)
         self.val_precisions.append(precisions)
         self.val_accuracy.append(accuracy)
+        self.val_loss.append(loss)
 
         return

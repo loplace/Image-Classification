@@ -9,17 +9,19 @@ from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
 from sklearn.utils import shuffle
 
+from Utilities.Metrics import Metrics
+
 vgg_conv = vgg16.VGG16(weights='imagenet',
                        include_top=False,
-                       input_shape=(200, 200, 3))
+                       input_shape=(224, 224, 3))
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/training_set/'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/test_set/'
 
 nTrain = 8005
 nVal = 2023
 batch_size = 10
-epochs = 1
+epochs = 10
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -34,7 +36,7 @@ train_labels = np.zeros(shape=nTrain)
 
 train_generator = datagen.flow_from_directory(
     train_dir,
-    target_size=(200, 200),
+    target_size=(224, 224),
     batch_size=batch_size,
     class_mode='binary')
 
@@ -49,17 +51,16 @@ for inputs_batch, labels_batch in train_generator:
 
 train_features = np.reshape(train_features, (nTrain, 7 * 7 * 512))
 
-validation_datagen = ImageDataGenerator(rescale=1. / 255)
-
 validation_features = np.zeros(shape=(nVal, 7, 7, 512))
 validation_labels = np.zeros(shape=nVal)
 
-validation_generator = validation_datagen.flow_from_directory(
+validation_generator = datagen.flow_from_directory(
     validation_dir,
-    target_size=(200, 200),
+    target_size=(224, 224),
     batch_size=batch_size,
     class_mode='binary',
     shuffle=False)
+metrics_epoch = Metrics()
 
 i = 0
 for inputs_batch, labels_batch in validation_generator:
@@ -78,18 +79,17 @@ model.add(layers.Dense(512, activation='relu', input_dim=7 * 7 * 512))
 model.add(layers.Dropout(0.5))
 model.add(layers.Dense(1, activation='sigmoid'))
 
-model.compile(optimizer=optimizers.RMSprop(lr=2e-4),
+model.compile(optimizer='Adadelta',
               loss='binary_crossentropy',
               metrics=['acc'])
 
 history = model.fit(train_features,
                     train_labels,
-                    epochs=1,
+                    epochs=epochs,
                     batch_size=batch_size,
-                    validation_data=(validation_features, validation_labels))
-
-model.save('Dogs_Cats_TransferLearning.h5')
-
+                    validation_data=(validation_features, validation_labels),
+                    callbacks=[metrics_epoch]
+                    )
 
 fnames = validation_generator.filenames
 ground_truth = validation_generator.classes
@@ -100,15 +100,16 @@ prob = model.predict(validation_features)
 errors = np.where(predictions != ground_truth)[0]
 print("No of errors = {}/{}".format(len(errors), nVal))
 
-val_preds = [1 if x >= 0.5 else 0 for x in predictions]
-print(val_preds)
+predicted_class_indices = [1 if x >= 0.5 else 0 for x in prob]
+print(predicted_class_indices)
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 
-cm = metrics.confusion_matrix(val_trues, val_preds)
+cm = metrics.confusion_matrix(val_trues, predicted_class_indices)
 print(cm)
 
-precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, val_preds, average=None)
+precisions, recall, fscore, support = metrics.precision_recall_fscore_support(val_trues, predicted_class_indices,
+                                                                              average=None)
 
 # Plot the accuracy and loss curves
 acc = history.history['acc']
@@ -126,26 +127,22 @@ print(fscore)
 
 f = open("Dogs_Cats_TransferLearning.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
-f.write(str3 + '\n')
-
-f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.close()

@@ -7,7 +7,7 @@ from keras.models import Sequential
 from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
 
-from Utilities.Metrics import Metrics
+from Utilities.Metrics import Metrics, MetricsWithGenerator
 
 batch_size = 30
 num_classes = 10
@@ -16,8 +16,8 @@ epochs = 10
 # input image dimensions
 image_size = 200
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/training_set/'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/test_set/'
 
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -49,7 +49,7 @@ validation_generator = validation_datagen.flow_from_directory(
     shuffle=False)
 
 model = Sequential()
-metrics_epoch = Metrics()
+metrics_epoch = MetricsWithGenerator(validation_generator)
 
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample.
 
@@ -75,16 +75,17 @@ model.add(BatchNormalization())
 model.add(Dense(1, activation='sigmoid'))
 
 model.compile(loss='binary_crossentropy',
-              optimizer='rmsprop',
+              optimizer='Adadelta',
               metrics=['accuracy'])
 
 print('fitting')
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
-    verbose=0)
+    verbose=1,
+    callbacks=[metrics_epoch])
 
 # model.save('mnist_cnn.h5')
 print('evaluating')
@@ -93,7 +94,6 @@ score = model.evaluate_generator(validation_generator)
 validation_generator.reset()
 pred = model.predict_generator(validation_generator, verbose=1)
 print(pred)
-# predicted_class_indices = np.argmax(pred, axis=1)
 predicted_class_indices = [1 if x >= 0.5 else 0 for x in pred]
 
 print(predicted_class_indices)
@@ -127,26 +127,26 @@ print(fscore)
 
 f = open("Dogs_Cats_Scratch_Batch_Normalization.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
 f.close()

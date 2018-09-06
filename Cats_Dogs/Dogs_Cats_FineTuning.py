@@ -1,8 +1,5 @@
 from __future__ import print_function
 
-import os
-import matplotlib.pyplot as plt
-import numpy as np
 # matplotlib inline
 from keras import models, layers, optimizers
 from keras.applications import VGG16
@@ -10,19 +7,18 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from sklearn import metrics
 
-from Utilities.Metrics import Metrics
+from Utilities.Metrics import Metrics, MetricsWithGenerator
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
+# train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
+# validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
 
-# train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
-# validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/training_set/'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/test_set/'
 image_size = 200
 
 # Load the VGG model
 vgg_conv = VGG16(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
-metrics = Metrics()
-epochs = 1
+epochs = 10
 
 
 # Freeze all the layers except last 4
@@ -56,7 +52,7 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 10
+train_batchsize = 50
 val_batchsize = 10
 
 # Data Generator for Training data
@@ -74,6 +70,7 @@ validation_generator = validation_datagen.flow_from_directory(
     class_mode='binary',
     shuffle=False)
 
+metrics_epoch = MetricsWithGenerator(validation_generator)
 # Compile the model
 model.compile(loss='binary_crossentropy',
               optimizer=optimizers.Adadelta(),
@@ -82,9 +79,9 @@ model.compile(loss='binary_crossentropy',
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
-    callbacks=[metrics],
+    callbacks=[metrics_epoch],
     verbose=1)
 
 # Save the Model
@@ -117,26 +114,26 @@ print(fscore)
 
 f = open("Dogs_Cats_FineTuning.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
 f.close()

@@ -12,14 +12,16 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from sklearn import metrics
 
-train_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/train'
-validation_dir = '/Users/mariusdragosionita/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
+from Utilities.Metrics import MetricsWithGenerator
+
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruit/Training'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruit/Test'
 
 # train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
-image_size = 224
+image_size = 128
 
-epochs = 1
+epochs = 10
 
 # Load the VGG model
 mobNet_conv = MobileNet(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
@@ -38,7 +40,7 @@ model.add(mobNet_conv)
 model.add(layers.Flatten())
 model.add(layers.Dense(64, activation='relu'))
 model.add(layers.Dropout(0.50))
-model.add(layers.Dense(1, activation='sigmoid'))
+model.add(layers.Dense(77, activation='softmax'))
 
 # Show a summary of the model. Check the number of trainable parameters
 model.summary()
@@ -55,41 +57,41 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 10
-val_batchsize = 10
+train_batchsize = 100
+val_batchsize = 100
 
 # Data Generator for Training data
 train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(image_size, image_size),
     batch_size=train_batchsize,
-    class_mode='binary')
+    class_mode='categorical')
 
 # Data Generator for Validation data
 validation_generator = validation_datagen.flow_from_directory(
     validation_dir,
     target_size=(image_size, image_size),
     batch_size=val_batchsize,
-    class_mode='binary',
+    class_mode='categorical',
     shuffle=False)
 
+metrics_epoch = MetricsWithGenerator(validation_generator)
 # Compile the model
-model.compile(loss='binary_crossentropy',
-              optimizer=optimizers.RMSprop(lr=1e-4),
+model.compile(loss='categorical_crossentropy',
+              optimizer='Adadelta',
               metrics=['acc'])
 
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
-    verbose=1)
+    verbose=1,
+    callbacks=[metrics_epoch])
 
 
 predictions = model.predict_generator(validation_generator)
-print(predictions)
-val_preds = [1 if x >= 0.5 else 0 for x in predictions]
-print(val_preds)
+val_preds = np.argmax(predictions, axis=-1)
 val_trues = validation_generator.classes
 classes_one_hot_encoded = to_categorical(val_trues)
 
@@ -112,28 +114,28 @@ print(recall)
 print('Fscore')
 print(fscore)
 
-f = open("Fruit_MobileNet.txt", "w+")
+f = open("Fruit_FineTuning_MobileNet.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
 f.close()

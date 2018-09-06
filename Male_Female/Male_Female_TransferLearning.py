@@ -9,6 +9,8 @@ from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
 from sklearn.utils import shuffle
 
+from Utilities.Metrics import MetricsWithGenerator, Metrics
+
 vgg_conv = vgg16.VGG16(weights='imagenet',
                        include_top=False,
                        input_shape=(224, 224, 3))
@@ -20,8 +22,8 @@ train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Mal
 validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/Male_Female/validation'
 nTrain = 2161
 nVal = 617
-batch_size = 10
-epochs = 1
+batch_size = 20
+epochs = 20
 
 datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -60,6 +62,7 @@ validation_generator = datagen.flow_from_directory(
     batch_size=batch_size,
     class_mode='binary',
     shuffle=False)
+metrics_epoch = Metrics()
 
 i = 0
 for inputs_batch, labels_batch in validation_generator:
@@ -78,15 +81,17 @@ model.add(layers.Dense(512, activation='relu', input_dim=7 * 7 * 512))
 model.add(layers.Dropout(0.5))
 model.add(layers.Dense(1, activation='sigmoid'))
 
-model.compile(optimizer=optimizers.RMSprop(lr=2e-4),
+model.compile(optimizer='Adadelta',
               loss='binary_crossentropy',
               metrics=['acc'])
 
 history = model.fit(train_features,
                     train_labels,
-                    epochs=15,
+                    epochs=epochs,
                     batch_size=batch_size,
-                    validation_data=(validation_features, validation_labels))
+                    validation_data=(validation_features, validation_labels),
+                    callbacks=[metrics_epoch]
+                    )
 
 fnames = validation_generator.filenames
 ground_truth = validation_generator.classes
@@ -124,26 +129,22 @@ print(fscore)
 
 f = open("Male_Female_TransferLearning.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
-f.write(str3 + '\n')
-
-f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.close()

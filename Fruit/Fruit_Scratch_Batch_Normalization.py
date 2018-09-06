@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 from keras.layers import Conv2D, MaxPooling2D, BatchNormalization
@@ -8,17 +7,17 @@ from keras_preprocessing.image import ImageDataGenerator
 from sklearn import metrics
 import numpy as np
 
-from Utilities.Metrics import Metrics
+from Utilities.Metrics import Metrics, MetricsWithGenerator
 
-batch_size = 30
-num_classes = 10
+batch_size = 100
+num_classes = 100
 epochs = 10
 
 # input image dimensions
 image_size = 100
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits/fruits-360/Training'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/fruits/fruits-360/Test'
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruit/Training'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruit/Test'
 
 train_datagen = ImageDataGenerator(
     rescale=1. / 255,
@@ -31,7 +30,7 @@ train_datagen = ImageDataGenerator(
 validation_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # Change the batchsize according to your system RAM
-train_batchsize = 30
+train_batchsize = 100
 val_batchsize = 10
 
 # Data Generator for Training data
@@ -50,7 +49,7 @@ validation_generator = validation_datagen.flow_from_directory(
     shuffle=False)
 
 model = Sequential()
-metrics_epoch = Metrics()
+metrics_epoch = MetricsWithGenerator(validation_generator)
 
 # Next, we declare the input layer: The input shape parameter should be the shape of 1 sample.
 
@@ -67,24 +66,26 @@ model.add(MaxPooling2D(pool_size=(2, 2)))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
 model.add(BatchNormalization())
+
 model.add(Flatten())
 model.add(Dense(128, activation='relu'))
 
 # Dropout layer we just added. This is a method for regularizing our model in order to prevent overfitting.
 model.add(BatchNormalization())
-model.add(Dense(75, activation='softmax'))
+model.add(Dense(77, activation='softmax'))
 
 model.compile(loss='categorical_crossentropy',
-              optimizer='rmsprop',
+              optimizer='Adadelta',
               metrics=['accuracy'])
 
 print('fitting')
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
-    verbose=1)
+    verbose=1,
+    callbacks=[metrics_epoch])
 
 # model.save('mnist_cnn.h5')
 print('evaluating')
@@ -126,26 +127,26 @@ print(fscore)
 
 f = open("Fruit_Scratch_Batch_Normalization.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
-f.close()
+f.close() 

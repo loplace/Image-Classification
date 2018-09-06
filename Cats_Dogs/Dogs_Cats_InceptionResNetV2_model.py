@@ -10,13 +10,15 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import to_categorical
 from sklearn import metrics
 
-train_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/training_set'
-validation_dir = '/home/federico/PycharmProjects/Image Classification/Datasets/cat-and-dog/test_set'
+from Utilities.Metrics import MetricsWithGenerator
+
+train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/training_set/'
+validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/cats-dogs/test_set/'
 
 # train_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Training/'
 # validation_dir = 'C:/Users/Federico/PycharmProjects/Image-Classification/Datasets/fruits/Test/'
 image_size = 200
-epochs = 1
+epochs = 10
 
 # Load the VGG model
 inceptResNet_conv = InceptionResNetV2(weights='imagenet', include_top=False, input_shape=(image_size, image_size, 3))
@@ -70,18 +72,19 @@ validation_generator = validation_datagen.flow_from_directory(
     batch_size=val_batchsize,
     class_mode='binary',
     shuffle=False)
-
+metrics_epoch = MetricsWithGenerator(validation_generator)
 # Compile the model
 model.compile(loss='binary_crossentropy',
-              optimizer=optimizers.RMSprop(lr=1e-4),
+              optimizer='Adadelta',
               metrics=['acc'])
 
 # Train the Model
 history = model.fit_generator(
     train_generator,
-    epochs=1,
+    epochs=epochs,
     validation_data=validation_generator,
-    verbose=1)
+    verbose=1,
+    callbacks=[metrics_epoch])
 
 # Save the Model
 model.save('Dogs_Cats_Finetuning.h5')
@@ -112,26 +115,26 @@ print(fscore)
 
 f = open("Dogs_Cats_InceptionResNetV2.txt", "w+")
 
-f.write('Number of Epochs:' + epochs + '\n')
+f.write('Number of Epochs:' + str(epochs) + '\n')
 
 f.write('Weighted Precision:\n')
-str1 = str(precisions)
+str1 = str(metrics_epoch.val_precisions)
 f.write(str1 + '\n')
 
 f.write('Weighted Recall:\n')
-str2 = str(recall)
+str2 = str(metrics_epoch.val_recalls)
 f.write(str2 + '\n')
 
 f.write('F_Score:\n')
-str3 = str(fscore)
+str3 = str(metrics_epoch.val_f1s)
 f.write(str3 + '\n')
 
 f.write('val_Acc:\n')
-str3 = str(val_acc)
+str3 = str(metrics_epoch.val_accuracy)
 f.write(str3 + '\n')
 
 f.write('val_loss:\n')
-str3 = str(val_loss)
+str3 = str(metrics_epoch.val_loss)
 f.write(str3 + '\n')
 
 f.close()
