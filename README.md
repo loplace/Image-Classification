@@ -16,6 +16,7 @@ In order to run this project you need the following softwares to be installed on
 
 ## Datasets
 Cats and Dogs Dataset: https://www.kaggle.com/c/dogs-vs-cats
+
 Fruits: https://github.com/Horea94/Fruit-Images-Dataset (note: repository in evolution, 77 tags when this readme has been written, probably the number is going to increase in near future)
 
 ## Owners
