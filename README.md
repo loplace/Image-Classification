@@ -3,7 +3,8 @@
 Project for the course of Algorithm for the web at University of Rome Tor Vergata, focusing on developing a deep neural network
 to classify Images. 
 In this github page you can find the Python code as well as some links to datasets. 
-Different files offer a different-tuned NN
+Different files offer a different-tuned NN.
+Code is entirely written in Python and makes use of Keras API. 
 
 ## Prerequisites
 In order to run this project you need the following softwares to be installed on your computer:
